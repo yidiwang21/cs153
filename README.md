@@ -1,5 +1,6 @@
 # cs153
 
+Download the repo:
 ```git clone git@github.com:yidiwang21/cs153.git```
 
 Every time you want to have your local repo update (Do this before you start to make changes):
