@@ -16,15 +16,14 @@ sys_fork(void)
 int
 sys_exit(void)
 {
-  exitS(0);
+  exit();
   return 0;  // not reached
 }
 
-int
-sys_exitS(void)
+int sys_exitS(void)
 {
-  FIXME: 
   int status;
+  argint(0, &status);
   exitS(status);
   return 0;  // not reached
 }
@@ -33,6 +32,13 @@ int
 sys_wait(void)
 {
   return wait();
+}
+
+int sys_waitS(void)
+{
+  int *status;
+  argptr(0, (char**)&status, sizeof(int*));
+  return waitS(status);
 }
 
 int
