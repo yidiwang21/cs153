@@ -370,7 +370,7 @@ int waitS(int *status)
       if(p->parent != curproc)
         continue;
       havekids = 1;
-      if(p->state == ZOMBIE){
+      if(p->state == ZOMBIE){ // zombie state: after exit(), a process still has entry to process table
         // Found one.
         pid = p->pid;
         kfree(p->kstack);
@@ -382,6 +382,8 @@ int waitS(int *status)
         p->killed = 0;
         p->state = UNUSED;
         release(&ptable.lock);
+        if (!status)
+          *status = p->status;
         return pid;
       }
     }
