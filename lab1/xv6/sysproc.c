@@ -16,14 +16,16 @@ sys_fork(void)
 int
 sys_exit(void)
 {
-  exit();
+  exitS(0);
   return 0;  // not reached
 }
 
 int
 sys_exitS(void)
 {
-  exitS(int status);
+  FIXME: 
+  int status;
+  exitS(status);
   return 0;  // not reached
 }
 
