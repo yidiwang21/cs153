@@ -267,8 +267,7 @@ exit(void)
   panic("zombie exit");
 }
 
-void
-exitS(int status)
+void exitS(int status)
 {
   struct proc *curproc = myproc();
   struct proc *p;
@@ -398,6 +397,49 @@ int waitS(int *status)
     sleep(curproc, &ptable.lock);  //DOC: wait-sleep
   }
 }
+
+int waitpid(int pid, int *status, int option)
+{
+  struct proc *p;
+  struct proc *curproc = myproc();
+  int foundpid = 0;
+  
+  acquire(&ptable.lock);
+  for(;;){
+    // Scan through table looking for the given pid
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if (p->pid != pid) 
+        continue;
+
+      foundpid++;
+      if(p->state == ZOMBIE){ // zombie state: after exit(), a process still has entry to process table
+        // Found one.
+        kfree(p->kstack);
+        p->kstack = 0;
+        freevm(p->pgdir);
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+        release(&ptable.lock);
+        if (!status)
+          *status = p->status;
+        return pid;
+      }
+    }
+
+    // No point waiting if we don't find the given pid
+    if(!foundpid || curproc->killed){
+      release(&ptable.lock);
+      return -1;
+    }
+
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+  }
+}
+
 
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
