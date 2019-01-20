@@ -380,9 +380,13 @@ int waitS(int *status)
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
-        release(&ptable.lock);
-        if (!status)
+        if (status) {
+          // status = &(p->status);  // FIXME: this one doesn't work!
           *status = p->status;
+          // cprintf("*status = %d\n", *status);
+          // cprintf("p->status = %d\n", p->status);
+        }         
+        release(&ptable.lock);
         return pid;
       }
     }
