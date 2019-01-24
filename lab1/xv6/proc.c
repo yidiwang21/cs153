@@ -383,8 +383,8 @@ int waitS(int *status)
         if (status) {
           // status = &(p->status);  // FIXME: this one doesn't work!
           *status = p->status;
-          // cprintf("*status = %d\n", *status);
-          // cprintf("p->status = %d\n", p->status);
+          cprintf("*status = %d\n", *status);
+          cprintf("p->status = %d\n", p->status);
         }         
         release(&ptable.lock);
         return pid;
@@ -427,18 +427,22 @@ int waitpid(int pid, int *status, int option)
         p->killed = 0;
         p->state = UNUSED;
         release(&ptable.lock);
-        if (!status)
+        if (status)
           *status = p->status;
         return pid;
       }
+      if (option == 1 && p->state != ZOMBIE){
+        release(&ptable.lock);
+	return 0;
+      }
     }
+    
 
     // No point waiting if we don't find the given pid
     if(!foundpid || curproc->killed){
       release(&ptable.lock);
       return -1;
     }
-
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
     sleep(curproc, &ptable.lock);  //DOC: wait-sleep
   }

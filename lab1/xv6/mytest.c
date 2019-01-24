@@ -10,7 +10,7 @@
 
 #define EXIT_FAILURE    1
 #define EXIT_SUCCESS    0
-#define FORK_NUM        10
+#define FORK_NUM        3
 
 void test_status(void);
 void test_wait(void);
@@ -26,8 +26,9 @@ int main(int argc, char const *argv[])
 void test_status(void) {
     int cpid, vpid;
     int status;
+    int i;
 
-    for(int i = 0; i < FORK_NUM; i++) {
+    for(i=0;i <= FORK_NUM; i++) {
         cpid = fork();
         if (cpid < 0) {
             printf(1, "# Fork error");
@@ -42,3 +43,28 @@ void test_status(void) {
         }
     }
 }
+
+void test_waitpid(void) {
+   int cpid, vpid;
+   int status;
+   int i;
+
+   for(i=0;i <= FORK_NUM; i++) {
+       cpid=fork();
+       if (cpid == 0){
+       	  sleep(5000);
+       }
+   }
+   
+   for(vpid=0; vpid<FORK_NUM; vpid++){
+     waitpid(FORK_NUM/2, &status, 1);
+     printf(1, ""); 
+   }
+}
+
+
+
+
+
+
+
