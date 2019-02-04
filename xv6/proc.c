@@ -476,10 +476,18 @@ scheduler(void)
     // round robin
     // find the runable process with highest priority
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      // priority aging added here
+      if(p->state == RUNNING) {
+        p->priority++;
+        continue;
+      }
+      //
       if(p->state != RUNNABLE)
         continue;
-      if(chosen_prio > p->priority)
+      if(chosen_prio > p->priority) { // process in waiting state
+        p->priority--;                // priority aging added here
         chosen_prio = p->priority;
+      }
     }    
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
