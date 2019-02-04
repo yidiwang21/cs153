@@ -448,7 +448,8 @@ int waitpid(int pid, int *status, int option)
   }
 }
 
-
+#define LOWEST_PRIORITY  31
+#define HIGHEST_PRIORITY  0
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -470,6 +471,33 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+
+    int chosen_prio = LOWEST_PRIORITY;
+    // round robin
+    // find the runable process with highest priority
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+      if(chosen_prio > p->priority)
+        chosen_prio = p->priority;
+    }    
+
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+      // switch to the process with chosen priority
+      if(p->priority != chosen_prio) 
+        continue;
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+      c->proc = 0;
+    }
+    release(&ptable.lock);
+    /*
+    // FIFO 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
@@ -488,7 +516,7 @@ scheduler(void)
       // It should have changed its p->state before coming back.
       c->proc = 0;
     }
-    release(&ptable.lock);
+    */
 
   }
 }
@@ -519,17 +547,15 @@ sched(void)
   mycpu()->intena = intena;
 }
 
-#define MAX_PRIORITY  31
-#define MIN_PRIORITY  0
-// Assign priority for the current process
+// Assign priority for the current process, 0: highest, 31: lowest
 void setpriority(int priority) {
   struct proc *currproc = myproc();
   
   acquire(&ptable.lock);
-  if(priority > MAX_PRIORITY)
-    currproc->priority = MAX_PRIORITY;
-  else if (priority < MIN_PRIORITY)
-    currproc->priority = MIN_PRIORITY;
+  if(priority > LOWEST_PRIORITY)
+    currproc->priority = LOWEST_PRIORITY;
+  else if (priority < HIGHEST_PRIORITY)
+    currproc->priority = HIGHEST_PRIORITY;
   else
     currproc->priority = priority;
   
