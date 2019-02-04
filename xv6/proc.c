@@ -519,6 +519,24 @@ sched(void)
   mycpu()->intena = intena;
 }
 
+#define MAX_PRIORITY  31
+#define MIN_PRIORITY  0
+// Assign priority for the current process
+void setpriority(int priority) {
+  struct proc *currproc = myproc();
+  
+  acquire(&ptable.lock);
+  if(priority > MAX_PRIORITY)
+    currproc->priority = MAX_PRIORITY;
+  else if (priority < MIN_PRIORITY)
+    currproc->priority = MIN_PRIORITY;
+  else
+    currproc->priority = priority;
+  
+  release(&ptable.lock);
+}
+
+
 // Give up the CPU for one scheduling round.
 void
 yield(void)
