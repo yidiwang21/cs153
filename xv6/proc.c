@@ -215,6 +215,7 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+  np->priority = 10;
 
   release(&ptable.lock);
 
@@ -478,14 +479,16 @@ scheduler(void)
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       // priority aging added here
       if(p->state == RUNNING) {
-        p->priority++;
+        if (p->priority < LOWEST_PRIORITY)
+          p->priority++;
         continue;
       }
       //
       if(p->state != RUNNABLE)
         continue;
       if(chosen_prio > p->priority) { // process in waiting state
-        p->priority--;                // priority aging added here
+        if (p->priority > HIGHEST_PRIORITY)
+          p->priority--;                // priority aging added here
         chosen_prio = p->priority;
       }
     }    
@@ -557,16 +560,15 @@ sched(void)
 
 // Assign priority for the current process, 0: highest, 31: lowest
 void setpriority(int priority) {
-  struct proc *currproc = myproc();
-  
+  struct proc *p = myproc();
+
   acquire(&ptable.lock);
   if(priority > LOWEST_PRIORITY)
-    currproc->priority = LOWEST_PRIORITY;
+    p->priority = LOWEST_PRIORITY;
   else if (priority < HIGHEST_PRIORITY)
-    currproc->priority = HIGHEST_PRIORITY;
+    p->priority = HIGHEST_PRIORITY;
   else
-    currproc->priority = priority;
-  
+    p->priority = priority;
   release(&ptable.lock);
 }
 
