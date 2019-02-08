@@ -478,12 +478,16 @@ scheduler(void)
     chosen_prio = LOWEST_PRIORITY;
     // round robin
     // find the runable process with highest priority
-
-    
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      // priority aging added here
+      if(p->state == RUNNING) {
+        if(p->priority < LOWEST_PRIORITY) p->priority++;
+        continue;
+      }
       if(p->state != RUNNABLE)
         continue;
       if(chosen_prio > p->priority) { // process in ready state
+        if(p->priority > HIGHEST_PRIORITY) p->priority--;
         chosen_prio = p->priority;
       }
     }    
@@ -558,24 +562,22 @@ sched(void)
 
 int getpriority(void) {
   struct proc *currproc = myproc();
-  
   return currproc->priority;
-  
 }
 
 // Assign priority for the current process, 0: highest, 31: lowest
 int setpriority(int priority) {
-  struct proc *p = myproc();
+  struct proc *currproc = myproc();
 
   // acquire(&ptable.lock);
   if(priority > LOWEST_PRIORITY)
-    p->priority = LOWEST_PRIORITY;
+    currproc->priority = LOWEST_PRIORITY;
   else if (priority < HIGHEST_PRIORITY)
-    p->priority = HIGHEST_PRIORITY;
+    currproc->priority = HIGHEST_PRIORITY;
   else
-    p->priority = priority;
+    currproc->priority = priority;
   // release(&ptable.lock);
-  return p->priority;
+  return currproc->priority;
 }
 
 
