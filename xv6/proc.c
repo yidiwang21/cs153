@@ -569,15 +569,21 @@ int getpriority(void) {
 int setpriority(int priority) {
   struct proc *currproc = myproc();
 
+  // return 0 means success
   // acquire(&ptable.lock);
-  if(priority > LOWEST_PRIORITY)
+  if(priority > LOWEST_PRIORITY) {
     currproc->priority = LOWEST_PRIORITY;
-  else if (priority < HIGHEST_PRIORITY)
+    return 0;
+  }
+  else if (priority < HIGHEST_PRIORITY) {
     currproc->priority = HIGHEST_PRIORITY;
-  else
+  }
+  else{
     currproc->priority = priority;
+    return 0;
+  }
   // release(&ptable.lock);
-  return currproc->priority;
+  return -1;
 }
 
 
