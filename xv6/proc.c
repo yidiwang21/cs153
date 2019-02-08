@@ -218,7 +218,6 @@ fork(void)
   np->priority = 10;
 
   release(&ptable.lock);
-
   return pid;
 }
 
@@ -466,6 +465,8 @@ scheduler(void)
   struct cpu *c = mycpu();
   c->proc = 0;
   
+  int chosen_prio = LOWEST_PRIORITY;
+
   for(;;){
     // Enable interrupts on this processor.
     sti();
@@ -473,22 +474,16 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
 
-    int chosen_prio = LOWEST_PRIORITY;
+    
+    chosen_prio = LOWEST_PRIORITY;
     // round robin
     // find the runable process with highest priority
+
+    
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      // priority aging added here
-      if(p->state == RUNNING) {
-        if (p->priority < LOWEST_PRIORITY)
-          p->priority++;
-        continue;
-      }
-      //
       if(p->state != RUNNABLE)
         continue;
-      if(chosen_prio > p->priority) { // process in waiting state
-        if (p->priority > HIGHEST_PRIORITY)
-          p->priority--;                // priority aging added here
+      if(chosen_prio > p->priority) { // process in ready state
         chosen_prio = p->priority;
       }
     }    
@@ -506,13 +501,15 @@ scheduler(void)
       switchkvm();
       c->proc = 0;
     }
+    
     release(&ptable.lock);
-    /*
+    
+    /* 
     // FIFO 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-
+pppppPPP
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -526,8 +523,9 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
-    }
-    */
+    } */
+    
+    // release(&ptable.lock);
 
   }
 }
@@ -558,18 +556,26 @@ sched(void)
   mycpu()->intena = intena;
 }
 
+int getpriority(void) {
+  struct proc *currproc = myproc();
+  
+  return currproc->priority;
+  
+}
+
 // Assign priority for the current process, 0: highest, 31: lowest
-void setpriority(int priority) {
+int setpriority(int priority) {
   struct proc *p = myproc();
 
-  acquire(&ptable.lock);
+  // acquire(&ptable.lock);
   if(priority > LOWEST_PRIORITY)
     p->priority = LOWEST_PRIORITY;
   else if (priority < HIGHEST_PRIORITY)
     p->priority = HIGHEST_PRIORITY;
   else
     p->priority = priority;
-  release(&ptable.lock);
+  // release(&ptable.lock);
+  return p->priority;
 }
 
 

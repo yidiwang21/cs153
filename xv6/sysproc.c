@@ -121,5 +121,12 @@ int sys_setpriority(void)
   int priority;
   argint(0, &priority);
   setpriority(priority);
-  return 0;  // not reached
+  return priority;
+}
+
+int sys_getpriority(void) 
+{
+  int ret;
+  ret = getpriority();
+  return ret;
 }
